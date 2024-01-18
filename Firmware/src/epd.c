@@ -22,7 +22,7 @@ extern const uint8_t ucMirror[];
 #include "font16zh.h"
 #include "font30.h"
 
-RAM uint8_t epd_model = 0; // 0 = Undetected, 1 = BW213, 2 = BWR213, 3 = BWR154, 4 = BW213ICE, 5 BWR296
+RAM uint8_t epd_model = 5; // 0 = Undetected, 1 = BW213, 2 = BWR213, 3 = BWR154, 4 = BW213ICE, 5 BWR296
 const char *epd_model_string[] = {"NC", "BW213", "BWR213", "BWR154", "213ICE", "BWR296"};
 RAM uint8_t epd_update_state = 0;
 
@@ -63,6 +63,7 @@ void set_EPD_wait_flush() {
 // Here we detect what E-Paper display is connected
 _attribute_ram_code_ void EPD_detect_model(void)
 {
+#if 0
     EPD_init();
     // system power
     EPD_POWER_ON();
@@ -73,7 +74,6 @@ _attribute_ram_code_ void EPD_detect_model(void)
     WaitMs(10);
     gpio_write(EPD_RESET, 1);
     WaitMs(10);
-
     // Here we neeed to detect it
     if (EPD_BWR_296_detect())
     {
@@ -95,8 +95,10 @@ _attribute_ram_code_ void EPD_detect_model(void)
     {
         epd_model = 1;
     }
-
     EPD_POWER_OFF();
+#else
+    epd_model = 5;
+#endif
 }
 
 _attribute_ram_code_ uint8_t EPD_read_temp(void)
@@ -148,6 +150,7 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, unsigned char *red_i
     gpio_write(EPD_RESET, 1);
     WaitMs(10);
 
+#if 0
     if (epd_model == 1)
         epd_temperature = EPD_BW_213_Display(image, size, full_or_partial);
     else if (epd_model == 2)
@@ -156,9 +159,13 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, unsigned char *red_i
 //        epd_temperature = EPD_BWR_154_Display(image, size, full_or_partial);
     else if (epd_model == 4)
         epd_temperature = EPD_BW_213_ice_Display(image, size, full_or_partial);
-    else if (epd_model == 5)
+    else if (epd_model == 5) {
         epd_temperature = EPD_BWR_296_Display_BWR(image, red_image, size, full_or_partial);
+    }
         //epd_temperature = EPD_BWR_296_Display(image, size, full_or_partial);
+#else
+    epd_temperature = EPD_BWR_296_Display_BWR(image, red_image, size, full_or_partial);
+#endif
 
     epd_temperature_is_read = 1;
     epd_update_state = 1;
@@ -166,6 +173,7 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, unsigned char *red_i
 
 _attribute_ram_code_ void epd_set_sleep(void)
 {
+#if 0
     if (!epd_model)
         EPD_detect_model();
 
@@ -177,6 +185,9 @@ _attribute_ram_code_ void epd_set_sleep(void)
 //        EPD_BWR_154_set_sleep();
     else if (epd_model == 4 || epd_model == 5)
         EPD_BW_213_ice_set_sleep();
+#else
+    EPD_BWR_296_set_sleep();
+#endif
 
     EPD_POWER_OFF();
     epd_update_state = 0;
@@ -317,6 +328,8 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 120, (char *)buff, 1);
     FixBuffer(epd_temp, epd_buffer, resolution_w, resolution_h);
     EPD_Display(epd_buffer, NULL, resolution_w * resolution_h / 8, full_or_partial);
+    EPD_Display(epd_buffer, NULL, resolution_w * resolution_h / 8, 1);
+    EPD_Display(epd_buffer, NULL, resolution_w * resolution_h / 8, 2);
 }
 
 _attribute_ram_code_ void epd_display_char(uint8_t data)
@@ -345,7 +358,7 @@ void update_time_scene(struct date_time _time, uint16_t battery_mv, int16_t temp
     }
 
     if (epd_wait_update) {
-        scene(_time, battery_mv, temperature, 1);
+        scene(_time, battery_mv, temperature, -1);
         epd_wait_update = 0;
     }
 
@@ -355,7 +368,7 @@ void update_time_scene(struct date_time _time, uint16_t battery_mv, int16_t temp
         if (_time.tm_hour != hour_refresh)
         {
             hour_refresh = _time.tm_hour;
-            scene(_time, battery_mv, temperature, 1);
+            scene(_time, battery_mv, temperature, -1);
         }
         else
         {

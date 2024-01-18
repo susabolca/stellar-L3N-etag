@@ -8,6 +8,8 @@
 #include "stack/ble/ble.h"
 
 // SSD1675 mixed with SSD1680 EPD Controller
+#define Y_B0 (0x2c)
+#define Y_B1 (0x01)
 
 #define BWR_296_Len 50
 uint8_t LUT_bwr_296_part[] = {
@@ -97,8 +99,8 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_read_temp(void)
 
     // Set RAM Y- Address Start/End
     EPD_WriteCmd(0x45);
-    EPD_WriteData(0x27);   //0x0127-->(295+1)=296
-	EPD_WriteData(0x01);
+    EPD_WriteData(Y_B0);   //0x0127-->(295+1)=296
+	EPD_WriteData(Y_B1);
 	EPD_WriteData(0x00);
 	EPD_WriteData(0x00);
 
@@ -138,6 +140,7 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_read_temp(void)
     return epd_temperature;
 }
 
+#if 0
 _attribute_ram_code_ uint8_t EPD_BWR_296_Display(unsigned char *image, int size, uint8_t full_or_partial) {
     uint8_t epd_temperature = 0 ;
 
@@ -172,13 +175,18 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display(unsigned char *image, int size,
 
     // Set RAM X- Address Start/End
     EPD_WriteCmd(0x44);
-    EPD_WriteData(0x00);
-    EPD_WriteData(0x0F);
+    if (full_or_partial == 1) {
+        EPD_WriteData(0x10);
+        EPD_WriteData(0x1F);
+    } else {
+        EPD_WriteData(0x00);
+        EPD_WriteData(0x0F);
+    }
 
     // Set RAM Y- Address Start/End
     EPD_WriteCmd(0x45);
-    EPD_WriteData(0x28);   //0x0127-->(295+1)=296
-	EPD_WriteData(0x01);
+    EPD_WriteData(Y_B0);   //0x0127-->(295+1)=296
+	EPD_WriteData(Y_B1);
 	EPD_WriteData(0x00);
 	EPD_WriteData(0x00);
 
@@ -217,8 +225,8 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display(unsigned char *image, int size,
 
     // Set RAM Y address
     EPD_WriteCmd(0x4F);
-    EPD_WriteData(0x28);
-    EPD_WriteData(0x01);
+    EPD_WriteData(Y_B0);
+    EPD_WriteData(Y_B1);
 
     EPD_LoadImage(image, size, 0x24);
 
@@ -228,8 +236,8 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display(unsigned char *image, int size,
 
     // Set RAM Y address
     EPD_WriteCmd(0x4F);
-    EPD_WriteData(0x28);
-    EPD_WriteData(0x01);
+    EPD_WriteData(Y_B0);
+    EPD_WriteData(Y_B1);
 
     EPD_WriteCmd(0x26);
     int i;
@@ -256,12 +264,14 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display(unsigned char *image, int size,
 
     return epd_temperature;
 }
+#endif
 
 _attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsigned char *red_image, int size, uint8_t full_or_partial) {
+#if 0
     if (red_image == NULL) {
         return EPD_BWR_296_Display(image, size, full_or_partial);
     }
-
+#endif
     uint8_t epd_temperature = 0 ;
 
     // SW Reset
@@ -295,13 +305,22 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsig
 
     // Set RAM X- Address Start/End
     EPD_WriteCmd(0x44);
-    EPD_WriteData(0x00);
-    EPD_WriteData(0x0F);
+
+    if (full_or_partial == 1) {
+        EPD_WriteData(0x10);
+        EPD_WriteData(0x1F);
+    } else if (full_or_partial == 2) {
+        EPD_WriteData(0x20);
+        EPD_WriteData(0x2F);
+    } else {
+        EPD_WriteData(0x00);
+        EPD_WriteData(0x0F);
+    }
 
     // Set RAM Y- Address Start/End
     EPD_WriteCmd(0x45);
-    EPD_WriteData(0x28);   //0x0127-->(295+1)=296
-	EPD_WriteData(0x01);
+    EPD_WriteData(Y_B0);   //0x0127-->(295+1)=296
+	EPD_WriteData(Y_B1);
 	EPD_WriteData(0x00);
 	EPD_WriteData(0x00);
 
@@ -340,10 +359,17 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsig
 
     // Set RAM Y address
     EPD_WriteCmd(0x4F);
-    EPD_WriteData(0x28);
-    EPD_WriteData(0x01);
+    EPD_WriteData(Y_B0);
+    EPD_WriteData(Y_B1);
 
-    EPD_LoadImage(image, size, 0x24);
+    if (image) {
+        EPD_LoadImage(image, size, 0x24);
+    } else {
+        EPD_WriteCmd(0x26);
+        for (int i = 0; i < size; i++) {
+            EPD_WriteData(0x00);
+        }
+    }
 
     // Set RAM X address
     EPD_WriteCmd(0x4E);
@@ -351,11 +377,19 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsig
 
     // Set RAM Y address
     EPD_WriteCmd(0x4F);
-    EPD_WriteData(0x28);
-    EPD_WriteData(0x01);
+    EPD_WriteData(Y_B0);
+    EPD_WriteData(Y_B1);
 
-    EPD_LoadImage(red_image, size, 0x26);
+    if (red_image) {
+        EPD_LoadImage(red_image, size, 0x26);
+    } else {
+        EPD_WriteCmd(0x26);
+        for (int i = 0; i < size; i++) {
+            EPD_WriteData(0x00);
+        }
+    }
 
+#if 0
     int i;
     if (!full_or_partial)
     {
@@ -365,6 +399,7 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsig
             EPD_WriteData(LUT_bwr_296_part[i]);
         }
     }
+#endif
 
     // Display update control
     EPD_WriteCmd(0x22);
@@ -381,5 +416,6 @@ _attribute_ram_code_ void EPD_BWR_296_set_sleep(void)
     // deep sleep
     EPD_WriteCmd(0x10);
     EPD_WriteData(0x01);
-
 }
+
+
