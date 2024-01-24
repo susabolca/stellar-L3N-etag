@@ -4,11 +4,13 @@
 #include "main.h"
 #include "epd.h"
 #include "epd_spi.h"
-#include "epd_bw_213.h"
-#include "epd_bwr_213.h"
-#include "epd_bw_213_ice.h"
+
+//#include "epd_bw_213.h"
+//#include "epd_bwr_213.h"
+//#include "epd_bw_213_ice.h"
 //#include "epd_bwr_154.h"
 #include "epd_bwr_296.h"
+
 #include "drivers.h"
 #include "stack/ble/ble.h"
 
@@ -135,7 +137,7 @@ _attribute_ram_code_ uint8_t EPD_read_temp(void)
     return epd_temperature;
 }
 
-_attribute_ram_code_ void EPD_Display(unsigned char *image, unsigned char *red_image, int size, uint8_t full_or_partial)
+_attribute_ram_code_ void EPD_Display(unsigned char *image, unsigned char *red_image, int w, int h, int left, int top)
 {
     if (!epd_model)
         EPD_detect_model();
@@ -164,7 +166,7 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, unsigned char *red_i
     }
         //epd_temperature = EPD_BWR_296_Display(image, size, full_or_partial);
 #else
-    epd_temperature = EPD_BWR_296_Display_BWR(image, red_image, size, full_or_partial);
+    epd_temperature = EPD_BWR_296_Display_BWR(image, red_image, w, h, left, top);
 #endif
 
     epd_temperature_is_read = 1;
@@ -227,10 +229,25 @@ _attribute_ram_code_ void FixBuffer(uint8_t *pSrc, uint8_t *pDst, uint16_t width
         for (x = 0; x < width; x++)
         {
             d[x * (height / 8)] = ~ucMirror[s[width - 1 - x]]; // invert and flip
-        }                                                      // for x
-    }                                                          // for y
+            //d[x * (height / 8)] = ~s[width - 1 - x];
+        } // x
+    } // y
 }
 
+_attribute_ram_code_ void FixBuffer2(uint8_t *pSrc, uint8_t *pDst, uint16_t width, uint16_t height)
+{
+    int x, y;
+    uint8_t *s, *d;
+    for (y = 0; y < (height / 8); y++) { // byte rows
+        d = &pDst[y * width];
+        s = &pSrc[y * width];
+        for (x = 0; x < width; x++) {
+            //d[x * (height / 8)] = ~ucMirror[s[width - 1 - x]]; // invert and flip
+            d[x] = ~ucMirror[s[x]];
+        } // x
+    } // y
+}
+#if 0
 _attribute_ram_code_ void TIFFDraw(TIFFDRAW *pDraw)
 {
     uint8_t uc = 0, ucSrcMask, ucDstMask, *s, *d;
@@ -268,6 +285,7 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
     TIFF_close(&tiff);
     EPD_Display(epd_buffer, NULL, epd_buffer_size, 1);
 }
+#endif
 
 extern uint8_t mac_public[6];
 _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_mv, int16_t temperature, uint8_t full_or_partial)
@@ -277,37 +295,8 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     if (epd_update_state)
         return;
 
-    if (!epd_model)
-    {
-        EPD_detect_model();
-    }
-    uint16_t resolution_w = 250;
-    uint16_t resolution_h = 128; // 122 real pixel, but needed to have a full byte
-    if (epd_model == 1)
-    {
-        resolution_w = 250;
-        resolution_h = 128; // 122 real pixel, but needed to have a full byte
-    }
-    else if (epd_model == 2)
-    {
-        resolution_w = 250;
-        resolution_h = 128; // 122 real pixel, but needed to have a full byte
-    }
-    else if (epd_model == 3)
-    {
-        resolution_w = 200;
-        resolution_h = 200;
-    }
-    else if (epd_model == 4)
-    {
-        resolution_w = 212;
-        resolution_h = 104;
-    }
-    else if (epd_model == 5)
-    {
-        resolution_w = 296;
-        resolution_h = 128;
-    }
+    uint16_t resolution_w = 296;
+    uint16_t resolution_h = 128;
 
     epd_clear();
 
@@ -315,6 +304,7 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     obdFill(&obd, 0, 0); // fill with white
 
     char buff[100];
+#if 1
     battery_level = get_battery_level(battery_mv);
     sprintf(buff, "S24_%02X%02X%02X %s", mac_public[2], mac_public[1], mac_public[0], epd_model_string[epd_model]);
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 1, 17, (char *)buff, 1);
@@ -326,12 +316,48 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     obdWriteStringCustom(&obd, (GFXfont *)&Special_Elite_Regular_30, 10, 95, (char *)buff, 1);
     sprintf(buff, "Battery %dmV  %d%%", battery_mv, battery_level);
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 120, (char *)buff, 1);
-    FixBuffer(epd_temp, epd_buffer, resolution_w, resolution_h);
-    EPD_Display(epd_buffer, NULL, resolution_w * resolution_h / 8, full_or_partial);
-    EPD_Display(epd_buffer, NULL, resolution_w * resolution_h / 8, 1);
-    EPD_Display(epd_buffer, NULL, resolution_w * resolution_h / 8, 2);
+    FixBuffer2(epd_temp, epd_buffer, resolution_w, resolution_h);
+    EPD_Display(epd_buffer, NULL, resolution_w, resolution_h, 0, 0);
+#else
+    //sprintf(buff, "%02d:%02d", _time.tm_hour, _time.tm_min);
+    //obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 75, 65, (char *)buff, 1);
+#endif
+
+#if 0
+    //FixBuffer(epd_temp, epd_buffer, resolution_w, resolution_h);
+    // fill with white
+    EPD_Display(NULL, NULL, 300, 128, 0, 0);
+    EPD_Display(NULL, NULL, 300, 128, 0, 16);
+    EPD_Display(NULL, NULL, 300, 128, 0, 32);
+    EPD_Display(NULL, NULL, 300, 128, 0, 48);
+#endif
+
+#if 0
+    for (int i=8; i<=resolution_h*resolution_w/8; i++) {
+        //epd_buffer[i] = ~(1 << (i%8));
+        epd_buffer[i] = 0x55;
+    }
+    EPD_Display(epd_buffer, NULL, resolution_w, resolution_h, 16, 0);
+
+    for (int i=0; i<=resolution_h*resolution_w/8; i++) {
+        epd_buffer[i] = (1 << (i%8));
+    }
+    EPD_Display(NULL, epd_buffer, resolution_w, resolution_h, 16, 32);
+#endif
+
+#if 0
+    epd_clear();
+    sprintf(buff, "Af");
+    //obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 0, 0, (char *)buff, 1);
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 1, 17, (char *)buff, 1);
+    FixBuffer2(epd_temp, epd_buffer, resolution_w, resolution_h);
+    EPD_Display(epd_buffer, NULL, resolution_w, resolution_h, 8, 0);
+    //EPD_Display(epd_temp, NULL, resolution_w, resolution_h, 8, 16);
+#endif
+
 }
 
+#if 0
 _attribute_ram_code_ void epd_display_char(uint8_t data)
 {
     int i;
@@ -341,13 +367,15 @@ _attribute_ram_code_ void epd_display_char(uint8_t data)
     }
     EPD_Display(epd_buffer, NULL, epd_buffer_size, 1);
 }
+#endif
 
 _attribute_ram_code_ void epd_clear(void)
 {
     memset(epd_buffer, 0x00, epd_buffer_size);
     memset(epd_temp, 0x00, epd_buffer_size);
 }
-void update_time_scene(struct date_time _time, uint16_t battery_mv, int16_t temperature, void (*scene)(struct date_time, uint16_t, int16_t,  uint8_t)) {
+
+void update_time_scene(struct date_time _time, uint16_t battery_mv, int16_t temperature, void (*scene)(struct date_time, uint16_t, int16_t, uint8_t)) {
     // default scene: show default time, battery, ble address, temperature
     if (epd_update_state)
         return;
@@ -378,6 +406,7 @@ void update_time_scene(struct date_time _time, uint16_t battery_mv, int16_t temp
 }
 
 void epd_update(struct date_time _time, uint16_t battery_mv, int16_t temperature) {
+#if 0
     switch(epd_scene) {
         case 1:
             update_time_scene(_time, battery_mv, temperature, epd_display);
@@ -388,8 +417,12 @@ void epd_update(struct date_time _time, uint16_t battery_mv, int16_t temperature
         default:
             break;
     }
+#else
+    update_time_scene(_time, battery_mv, temperature, epd_display);
+#endif
 }
 
+#if 0
 void epd_display_time_with_date(struct date_time _time, uint16_t battery_mv, int16_t temperature, uint8_t full_or_partial) {
     uint16_t battery_level;
 
@@ -455,3 +488,4 @@ void epd_display_time_with_date(struct date_time _time, uint16_t battery_mv, int
 
     EPD_Display(epd_buffer, NULL, epd_width * epd_height / 8, full_or_partial);
 }
+#endif

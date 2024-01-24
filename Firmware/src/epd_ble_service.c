@@ -39,7 +39,7 @@ int epd_ble_handle_write(void *p)
 	// Push buffer to display.
 	case 0x01:
 		ble_set_connection_speed(200);
-		EPD_Display(epd_buffer, epd_temp, epd_buffer_size, payload[1]);
+		//EPD_Display(epd_buffer, epd_temp, epd_buffer_size, payload[1]);
 		return 0;
 	// Set byte_pos.
 	case 0x02:
@@ -66,7 +66,7 @@ int epd_ble_handle_write(void *p)
 		bls_att_pushNotifyData(EPD_BLE_CMD_OUT_DP_H, out_buffer, 2);
 		return 0;
 	case 0x04: // decode & display a TIFF image
-		epd_display_tiff(epd_buffer, byte_pos);
+		//epd_display_tiff(epd_buffer, byte_pos);
 		return 0;
 	default:
 		return 0;

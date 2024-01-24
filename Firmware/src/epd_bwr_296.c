@@ -7,10 +7,6 @@
 #include "drivers.h"
 #include "stack/ble/ble.h"
 
-// SSD1675 mixed with SSD1680 EPD Controller
-#define Y_B0 (0x2c)
-#define Y_B1 (0x01)
-
 #define BWR_296_Len 50
 uint8_t LUT_bwr_296_part[] = {
 
@@ -59,6 +55,7 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_detect(void)
     return 1;
 }
 
+#if 0
 _attribute_ram_code_ uint8_t EPD_BWR_296_read_temp(void)
 {
     uint8_t epd_temperature = 0 ;
@@ -139,6 +136,7 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_read_temp(void)
 
     return epd_temperature;
 }
+#endif
 
 #if 0
 _attribute_ram_code_ uint8_t EPD_BWR_296_Display(unsigned char *image, int size, uint8_t full_or_partial) {
@@ -266,7 +264,7 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display(unsigned char *image, int size,
 }
 #endif
 
-_attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsigned char *red_image, int size, uint8_t full_or_partial) {
+_attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsigned char *red_image, int width, int height, int left, int top) {
 #if 0
     if (red_image == NULL) {
         return EPD_BWR_296_Display(image, size, full_or_partial);
@@ -277,11 +275,21 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsig
     // SW Reset
     EPD_WriteCmd(0x12);
 
+    // data size in bytes
+    int size = width*height/8;
+    // left up corner
+    int w0 = left;
+    int h0 = top;
+    // right bottom corner
+    int w1 = w0 + width - 1;
+    int h1 = h0 + height/8 - 1;
+
     EPD_CheckStatus_inverted(100);
 
     // Set Analog Block control
     EPD_WriteCmd(0x74);
     EPD_WriteData(0x54);
+
     // Set Digital Block control
     EPD_WriteCmd(0x7E);
     EPD_WriteData(0x3B);
@@ -295,34 +303,62 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsig
 
     // Driver output control
     EPD_WriteCmd(0x01);
-    EPD_WriteData(0x28);
+    EPD_WriteData(0x28);  // mux=0x128(296)
     EPD_WriteData(0x01);
-    EPD_WriteData(0x01);
+    EPD_WriteData(0x01);  // gd=0, sm=0, tb=1
 
     // Data entry mode setting
+    /*(00,00h)         o: begin
+        00:  <----     X: decrement
+               /       Y: decrement
+             <---o
+
+        01:  ---->     X: increment
+               \       Y: decrement
+             o--->
+
+        10:  <---o     X: decrement
+               \       Y: increment
+             <----
+
+        11:  o---->     X: increment
+                /       Y: increment
+             ----->
+                    (15,127h)
+    */
     EPD_WriteCmd(0x11);
-    EPD_WriteData(0x01);
+    EPD_WriteData(0x07);    // am=0,id=11
+
+
 
     // Set RAM X- Address Start/End
     EPD_WriteCmd(0x44);
 
+#if 0
     if (full_or_partial == 1) {
-        EPD_WriteData(0x10);
-        EPD_WriteData(0x1F);
+        EPD_WriteData(0x0C);
+        EPD_WriteData(0x17);
     } else if (full_or_partial == 2) {
-        EPD_WriteData(0x20);
+        EPD_WriteData(0x18);
+        EPD_WriteData(0x23);
+    } else if (full_or_partial == 3) {
+        EPD_WriteData(0x24);
         EPD_WriteData(0x2F);
     } else {
         EPD_WriteData(0x00);
-        EPD_WriteData(0x0F);
+        EPD_WriteData(0x0B);
     }
+#else
+    EPD_WriteData(h0 & 0xff); 
+    EPD_WriteData(h1 & 0xff); 
+#endif
 
     // Set RAM Y- Address Start/End
     EPD_WriteCmd(0x45);
-    EPD_WriteData(Y_B0);   //0x0127-->(295+1)=296
-	EPD_WriteData(Y_B1);
-	EPD_WriteData(0x00);
-	EPD_WriteData(0x00);
+    EPD_WriteData(w0 & 0xff);
+	EPD_WriteData((w0>>8) & 0xff);
+	EPD_WriteData(w1 & 0xff);
+	EPD_WriteData((w1>>8) & 0xff);
 
     // Border waveform control
     EPD_WriteCmd(0x3C);
@@ -353,32 +389,34 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsig
 
     WaitMs(5);
 
-    // Set RAM X address
+    // black color
+    // Set RAM X counter 
     EPD_WriteCmd(0x4E);
-    EPD_WriteData(0x00);
+    EPD_WriteData(h0 & 0xff);
 
-    // Set RAM Y address
+    // Set RAM Y counter 
     EPD_WriteCmd(0x4F);
-    EPD_WriteData(Y_B0);
-    EPD_WriteData(Y_B1);
+    EPD_WriteData(w0 & 0xff);
+    EPD_WriteData((w0 >> 8) & 0xff);
 
     if (image) {
         EPD_LoadImage(image, size, 0x24);
     } else {
-        EPD_WriteCmd(0x26);
+        EPD_WriteCmd(0x24);
         for (int i = 0; i < size; i++) {
-            EPD_WriteData(0x00);
+            EPD_WriteData(0xff);
         }
     }
 
+    // read color
     // Set RAM X address
     EPD_WriteCmd(0x4E);
-    EPD_WriteData(0x00);
+    EPD_WriteData(h0 & 0xff);
 
     // Set RAM Y address
     EPD_WriteCmd(0x4F);
-    EPD_WriteData(Y_B0);
-    EPD_WriteData(Y_B1);
+    EPD_WriteData(w0 & 0xff);
+    EPD_WriteData((w0 >> 8) & 0xff);
 
     if (red_image) {
         EPD_LoadImage(red_image, size, 0x26);
@@ -417,5 +455,4 @@ _attribute_ram_code_ void EPD_BWR_296_set_sleep(void)
     EPD_WriteCmd(0x10);
     EPD_WriteData(0x01);
 }
-
 

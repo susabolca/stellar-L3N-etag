@@ -29,7 +29,7 @@ void cmd_parser(void * p){
 	}else if(inData == 0x0C){
 		settings.advertising_temp_C_or_F = false;//Advertising Temp in C
 	}else if(inData == 0xB1){
-		epd_display_char(req->dat[1]);
+		//epd_display_char(req->dat[1]);
 	}else if(inData == 0xB0){
 		settings.show_batt_enabled = false;//Disable battery on LCD
 	}else if(inData == 0xA0){
