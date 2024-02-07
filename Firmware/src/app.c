@@ -31,6 +31,7 @@ _attribute_ram_code_ void user_init_normal(void)
 
     // epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
     // epd_display(3334533);
+    epd_all_white();
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)
@@ -45,8 +46,8 @@ _attribute_ram_code_ void main_loop(void)
     blt_sdk_main_loop();
     handler_time();
 
-    if (time_reached_period(Timer_CH_1, 30))
-    {
+    // 30s
+    if (time_reached_period(Timer_CH_1, 30)) {
         battery_mv = get_battery_mv();
         battery_level = get_battery_level(battery_mv);
         temperature = get_temperature_c();
@@ -57,8 +58,8 @@ _attribute_ram_code_ void main_loop(void)
 
     epd_update(get_time(), battery_mv, temperature);
 
-    if (time_reached_period(Timer_CH_0, 10))
-    {
+    // 10s
+    if (time_reached_period(Timer_CH_0, 10)) {
         if (ble_get_connected())
             set_led_color(3);
         else
@@ -67,14 +68,12 @@ _attribute_ram_code_ void main_loop(void)
         set_led_color(0);
     }
 
-    if (epd_state_handler()) // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
-    {
+    // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
+    if (epd_state_handler()) {
         cpu_set_gpio_wakeup(EPD_BUSY, 1, 1);
         bls_pm_setWakeupSource(PM_WAKEUP_PAD);
         bls_pm_setSuspendMask(SUSPEND_DISABLE);
-    }
-    else
-    {
+    } else {
         blt_pm_proc();
     }
 }

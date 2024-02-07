@@ -28,6 +28,7 @@
 #define EPD_MOSI	GPIO_PA1
 #define EPD_ENABLE	GPIO_PD4
 
+// no NFC
 #if 0
 #define NFC_SDA		GPIO_PC0
 #define NFC_SCL		GPIO_PC1
