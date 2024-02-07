@@ -1,9 +1,14 @@
 TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258
 
+OS := $(shell uname -s)
 ifeq ($(OS), Windows_NT)
 	TC32_COMPILER_PATH := "tc32_windows\\bin\\"
 	WINDOWS_PREFIX :=$(TC32_COMPILER_PATH)
 	LINUX_CHMOD := 
+else ifeq ($(OS), Darwin)
+	TC32_COMPILER_PATH := ./tc32_macos/bin/
+	WINDOWS_PREFIX :=
+	LINUX_CHMOD := chmod 777 -R ./tc32_macos/
 else
 	TC32_COMPILER_PATH := ./tc32_linux/bin/
 	WINDOWS_PREFIX :=
