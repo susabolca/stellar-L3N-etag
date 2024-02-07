@@ -329,26 +329,26 @@ _attribute_ram_code_ uint8_t EPD_BWR_296_Display(unsigned char *image, int size,
 
 void EPD_Lut(const unsigned char *lut)
 {
-    EPD_WriteCMD(0x32);
+    EPD_WriteCmd(0x32);
     for(int i=0; i<227; i++) {
-        EPD_WriteDATA(lut[i]);
+        EPD_WriteData(lut[i]);
     }
 
     // gate voltage
-    EPD_WriteCMD(0x3F);
-    EPD_WriteDATA(*(lut+227));
+    EPD_WriteCmd(0x3F);
+    EPD_WriteData(*(lut+227));
 
-    EPD_WriteCMD(0x03);
-    EPD_WriteDATA(*(lut+228));
+    EPD_WriteCmd(0x03);
+    EPD_WriteData(*(lut+228));
 
     // source voltage
-    EPD_WriteCMD(0x04);
-    EPD_WriteDATA(*(lut+229));	// VSH
-    EPD_WriteDATA(*(lut+230));	// VSH2
-    EPD_WriteDATA(*(lut+231));	// VSL
+    EPD_WriteCmd(0x04);
+    EPD_WriteData(*(lut+229));	// VSH
+    EPD_WriteData(*(lut+230));	// VSH2
+    EPD_WriteData(*(lut+231));	// VSL
 
-    EPD_WriteCMD(0x2C);
-    EPD_WriteDATA(*(lut+232));
+    EPD_WriteCmd(0x2C);
+    EPD_WriteData(*(lut+232));
 }
 
 _attribute_ram_code_ uint8_t EPD_BWR_296_Display_BWR(unsigned char *image, unsigned char *red_image, int width, int height, int left, int top) {
