@@ -53,3 +53,4 @@ _attribute_ram_code_ void set_led_color(uint8_t color)
         break;
     }
 }
+

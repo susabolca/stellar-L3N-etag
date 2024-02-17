@@ -6,6 +6,7 @@
 #include "drivers.h"
 #include "stack/ble/ble.h"
 
+extern const uint8_t ucMirror[];
 _attribute_ram_code_ void EPD_init(void)
 {
     gpio_set_func(EPD_RESET, AS_GPIO);
@@ -148,7 +149,18 @@ _attribute_ram_code_ void EPD_LoadImage(unsigned char *image, int size, uint8_t 
     EPD_WriteCmd(cmd);
     for (i = 0; i < size; i++)
     {
-        EPD_WriteData(image[i]);
+        EPD_WriteData(~ucMirror[image[i]]);
+    }
+    WaitMs(2);
+}
+
+_attribute_ram_code_ void EPD_LoadImageMirror(unsigned char *image, int size, uint8_t cmd)
+{
+    int i;
+    EPD_WriteCmd(cmd);
+    for (i = 0; i < size; i++)
+    {
+        EPD_WriteData(~ucMirror[image[i]]);
     }
     WaitMs(2);
 }

@@ -349,8 +349,8 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
         sprintf(buff, "%s", "ABCD");
     }
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16_zh, 200, 122, (char *)buff, 1);
-    FixBuffer2(epd_temp, epd_buffer, resolution_w, resolution_h);
-    EPD_Display(epd_buffer, NULL, resolution_w, resolution_h, 0, 0);
+    //FixBuffer2(epd_temp, epd_buffer, resolution_w, resolution_h);
+    EPD_Display(epd_temp, NULL, resolution_w, resolution_h, 0, 0);
 #endif
 
 #if 0

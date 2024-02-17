@@ -13,9 +13,9 @@
 #include "ota.h"
 #include "uart.h"
 
-#define LED_BLUE	GPIO_PA7
-#define LED_RED		GPIO_PD2
-#define LED_GREEN	GPIO_PD3
+#define LED_RED		GPIO_PD3
+#define LED_GREEN	GPIO_PD4
+#define LED_BLUE	GPIO_PD2
 
 #define RXD 		GPIO_PA0
 #define TXD			GPIO_PD7
@@ -26,7 +26,7 @@
 #define EPD_CS		GPIO_PB4
 #define EPD_CLK		GPIO_PB1
 #define EPD_MOSI	GPIO_PA1
-#define EPD_ENABLE	GPIO_PD4
+#define EPD_ENABLE	GPIO_PB5    // TBD: I don't see the enable pin connected.
 
 // no NFC
 #if 0

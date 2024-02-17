@@ -60,11 +60,14 @@ _attribute_ram_code_ void main_loop(void)
 
     // 10s
     if (time_reached_period(Timer_CH_0, 10)) {
-        if (ble_get_connected())
+
+        if (ble_get_connected()) {
             set_led_color(3);
-        else
+            WaitUs(500);
+        } else {
             set_led_color(2);
-        WaitMs(1);
+            WaitUs(200);
+        }
         set_led_color(0);
     }
 
