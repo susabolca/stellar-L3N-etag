@@ -8,10 +8,10 @@
 
 RAM bool i2c_sending;
 
-void init_i2c(void)
+void init_i2c(uint8_t device_id, int i2c_rate_khz)
 {
 	i2c_gpio_set(I2C_GPIO_GROUP_C0C1);
-	i2c_master_init(0x78, (uint8_t)(CLOCK_SYS_CLOCK_HZ / (4 * 400000)));
+	i2c_master_init(device_id, (uint8_t)(CLOCK_SYS_CLOCK_HZ / (4 * 1000 * i2c_rate_khz)));	// 400KHz
 }
 
 void send_i2c(uint8_t device_id, uint8_t *buffer, int dataLen)
@@ -36,3 +36,4 @@ uint8_t test_i2c_device(uint8_t address)
 
 	return (reg_i2c_status & FLD_I2C_NAK) ? 0 : 1;
 }
+

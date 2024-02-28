@@ -70,7 +70,7 @@ _attribute_ram_code_ void main_loop(void)
         }
         set_led_color(0);
     }
-
+    
     // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
     if (epd_state_handler()) {
         cpu_set_gpio_wakeup(EPD_BUSY, 1, 1);

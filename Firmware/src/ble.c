@@ -99,6 +99,7 @@ _attribute_ram_code_ int RxTxWrite(void *p)
 _attribute_ram_code_ void blt_pm_proc(void)
 {
 	bls_pm_setSuspendMask(SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
+	//bls_pm_setSuspendMask(SUSPEND_ADV | SUSPEND_CONN);	// no deepsleep
 }
 
 void init_ble(void)

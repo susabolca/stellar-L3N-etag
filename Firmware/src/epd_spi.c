@@ -149,7 +149,7 @@ _attribute_ram_code_ void EPD_LoadImage(unsigned char *image, int size, uint8_t 
     EPD_WriteCmd(cmd);
     for (i = 0; i < size; i++)
     {
-        EPD_WriteData(~ucMirror[image[i]]);
+        EPD_WriteData(image[i]);
     }
     WaitMs(2);
 }

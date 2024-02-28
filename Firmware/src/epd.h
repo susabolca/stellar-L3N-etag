@@ -3,8 +3,8 @@
 
 // 4in2 has 300x400 px screen
 // mcu only has 64K ram, split to a max of 300x128 px block for display.
-#define epd_height  128
-#define epd_width   300 
+#define epd_height  152
+#define epd_width   296 
 #define epd_buffer_size ((epd_height/8) * epd_width)
 
 void set_EPD_model(uint8_t model_nr);

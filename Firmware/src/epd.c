@@ -10,7 +10,9 @@
 //#include "epd_bw_213_ice.h"
 //#include "epd_bwr_154.h"
 //#include "epd_bwr_296.h"
-#include "epd_bwr_296.h"
+//#include "epd_bwr_296.h"
+#include "epd_bwr_266.h"
+#include "epd_bwr_420.h"
 
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -25,8 +27,8 @@ extern const uint8_t ucMirror[];
 #include "font16zh.h"
 #include "font30.h"
 
-RAM uint8_t epd_model = 1; // 0 = Undetected, 1 = BWR420
-const char *epd_model_string[] = {"NC", "BWR420"};
+RAM uint8_t epd_model = 1; // 0:Undetected, 1:BWR420, 2:BWR266
+const char *epd_model_string[] = {"NC", "BWR420", "BWR266"};
 RAM uint8_t epd_update_state = 0;
 
 RAM uint8_t epd_scene = 2;
@@ -100,7 +102,7 @@ _attribute_ram_code_ void EPD_detect_model(void)
     }
     EPD_POWER_OFF();
 #else
-    epd_model = 1;
+    //epd_model = 2;
 #endif
 }
 
@@ -123,7 +125,7 @@ _attribute_ram_code_ uint8_t EPD_read_temp(void)
     WaitMs(10);
 
     // read temp
-    epd_temperature = EPD_BWR_420_read_temp();
+    epd_temperature = EPD_BWR_266_read_temp();
 
     // power off
     EPD_POWER_OFF();
@@ -146,8 +148,12 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, unsigned char *red_i
     gpio_write(EPD_RESET, 1);
     WaitMs(10);
 
-    epd_temperature = EPD_BWR_420_Display_BWR(image, red_image, w, h, left, top);
-
+    if (epd_model == 1) {
+        epd_temperature = EPD_BWR_420_Display_BWR(image, red_image, w, h, left, top);
+    } else if (epd_model == 2) {
+        epd_temperature = EPD_BWR_266_Display_BWR(image, red_image, w, h, left, top);
+    }
+    
     epd_temperature_is_read = 1;
     epd_update_state = 1;
 }
@@ -167,7 +173,11 @@ _attribute_ram_code_ void epd_set_sleep(void)
     else if (epd_model == 4 || epd_model == 5)
         EPD_BW_213_ice_set_sleep();
 #else
-    EPD_BWR_420_sleep();
+    if (epd_model == 1) {
+        EPD_BWR_420_sleep();
+    } else if (epd_model == 2) {
+        EPD_BWR_266_sleep();
+    }
 #endif
 
     EPD_POWER_OFF();
@@ -197,22 +207,6 @@ _attribute_ram_code_ uint8_t epd_state_handler(void)
     return epd_update_state;
 }
 
-_attribute_ram_code_ void FixBuffer(uint8_t *pSrc, uint8_t *pDst, uint16_t width, uint16_t height)
-{
-    int x, y;
-    uint8_t *s, *d;
-    for (y = 0; y < (height / 8); y++)
-    { // byte rows
-        d = &pDst[y];
-        s = &pSrc[y * width];
-        for (x = 0; x < width; x++)
-        {
-            d[x * (height / 8)] = ~ucMirror[s[width - 1 - x]]; // invert and flip
-            //d[x * (height / 8)] = ~s[width - 1 - x];
-        } // x
-    } // y
-}
-
 _attribute_ram_code_ void FixBuffer2(uint8_t *pSrc, uint8_t *pDst, uint16_t width, uint16_t height)
 {
     int x, y;
@@ -223,6 +217,26 @@ _attribute_ram_code_ void FixBuffer2(uint8_t *pSrc, uint8_t *pDst, uint16_t widt
         for (x = 0; x < width; x++) {
             //d[x * (height / 8)] = ~ucMirror[s[width - 1 - x]]; // invert and flip
             d[x] = ~ucMirror[s[x]];
+        } // x
+    } // y
+}
+
+_attribute_ram_code_ void FixBuffer(uint8_t *pSrc, uint8_t *pDst, uint16_t width, uint16_t height)
+{
+    if (epd_model == 1) {
+        return FixBuffer2(pSrc, pDst, width, height);
+    }
+
+    int x, y;
+    uint8_t *s, *d;
+    for (y = 0; y < (height / 8); y++)
+    { // byte rows
+        d = &pDst[y];
+        s = &pSrc[y * width];
+        for (x = 0; x < width; x++)
+        {
+            d[x * (height / 8)] = ~ucMirror[s[width - 1 - x]]; // invert and flip
+            //d[x * (height / 8)] = ~s[width - 1 - x];
         } // x
     } // y
 }
@@ -284,7 +298,9 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     obdFill(&obd, 0, 0); // fill with white
 
     char buff[100];
-#if 0
+
+#define USE 2
+#if (USE==1)
     battery_level = get_battery_level(battery_mv);
     sprintf(buff, "S24_%02X%02X%02X %s", mac_public[2], mac_public[1], mac_public[0], epd_model_string[epd_model]);
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 1, 17, (char *)buff, 1);
@@ -298,7 +314,7 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 120, (char *)buff, 1);
     FixBuffer2(epd_temp, epd_buffer, resolution_w, resolution_h);
     EPD_Display(epd_buffer, NULL, resolution_w, resolution_h, 0, 0);
-#else
+#elif (USE==2)
     battery_level = get_battery_level(battery_mv);
     sprintf(buff, "S24_%02X%02X%02X", mac_public[2], mac_public[1], mac_public[0]);
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 1, 17, (char *)buff, 1);
@@ -349,7 +365,13 @@ _attribute_ram_code_ void epd_display(struct date_time _time, uint16_t battery_m
         sprintf(buff, "%s", "ABCD");
     }
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16_zh, 200, 122, (char *)buff, 1);
-    //FixBuffer2(epd_temp, epd_buffer, resolution_w, resolution_h);
+    FixBuffer(epd_temp, epd_buffer, resolution_w, resolution_h);
+    EPD_Display(epd_buffer, NULL, resolution_w, resolution_h, 0, 0);
+
+#else
+    for (int i=0; i<4096; i++) {
+        epd_temp[i] = 0x0f; //1 << (i % 8);
+    }
     EPD_Display(epd_temp, NULL, resolution_w, resolution_h, 0, 0);
 #endif
 
@@ -447,7 +469,11 @@ void epd_all_white() {
     gpio_write(EPD_RESET, 1);
     WaitMs(10);
 
-    EPD_BWR_420_Display_BWR(NULL, NULL, 300, 400, 0, 0);
+    if (epd_model == 1) {
+        EPD_BWR_420_Display_BWR(NULL, NULL, 296, 152, 0, 0);
+    } else if (epd_model == 2) {
+        EPD_BWR_266_Display_BWR(NULL, NULL, 296, 152, 0, 0);
+    }
 }
 
 void epd_update(struct date_time _time, uint16_t battery_mv, int16_t temperature) {

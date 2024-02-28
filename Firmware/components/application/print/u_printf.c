@@ -153,7 +153,7 @@ static int print(char **out, const char *format, va_list args) {
 			if (*format == '\0')
 				break;
 			if (*format == '%')
-				goto out;
+				goto exit;
 			if (*format == '-') {
 				++format;
 				pad = PAD_RIGHT;
@@ -195,7 +195,7 @@ static int print(char **out, const char *format, va_list args) {
 				continue;
 			}
 		} else {
-			out: printchar(out, *format);
+exit: 		printchar(out, *format);
 			++pc;
 		}
 	}
@@ -205,23 +205,23 @@ static int print(char **out, const char *format, va_list args) {
 	return pc;
 }
 
-//extern void puts(const char* str);
+extern void uart_puts(const char* str);
 int u_printf(const char *format, ...) {
-	static char my_printf_buff[1024] = { 0 };
+	static char my_printf_buff[256];
 	char *out = &my_printf_buff[0];
-
 	
 	va_list args;
-	va_start(args, format );
-	print(&out, format, args);
-	//puts(my_printf_buff);
-	return 0;
+	va_start( args, format );
+	int pc = print(&out, format, args);
+	uart_puts(my_printf_buff);
+	return pc;
 }
 
 int u_sprintf(char *out, const char *format, ...) {
 	va_list args;
 	va_start( args, format );
-	return print(&out, format, args);
+	int pc = print(&out, format, args);
+	return pc;
 }
 
 void u_array_printf(unsigned char*data, unsigned int len) {

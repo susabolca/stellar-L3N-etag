@@ -10,7 +10,7 @@
 	<a href="https://github.com/atc1441/ATC_TLSR_Paper" target="_blank">Firmware GitHub Repo</a><br>
 	<a href="https://github.com/atc1441/ATC_TLSR_Paper/blob/main/USB_UART_Flashing_connection.jpg" target="_blank">Flashing Pinout</a>
 	<br><br>
-	1. USB-COM: <input type="button" id="butOpen" value="Close">
+	1. USB-COM: <input type="button" id="butOpen" value="Open">
 	Baud: <select id="ubaud" title="Optimal: 460800 baud"><option value="115200">115200</option><option value="230400">230400</option><option value="460800" selected="">460800</option><option value="921600">921600</option><option value="1500000">1500000</option><option value="2000000">2000000</option></select>
 	Atime: <select id="uatime" title="Activation time: Set above than Advertising interval or use manual power reset"><option value="0">0 ms</option><option value="100">100 ms</option><option value="1000">1 sec</option><option value="2000">2 sec</option><option value="3000" selected="">3 sec</option><option value="4000">4 sec</option><option value="8000">8 sec</option><option value="16000">16 sec</option></select>
 	<br><br>
@@ -18,7 +18,7 @@
 	3. <input type="button" title="Write firmware in to Flash" id="butWrite" value="Write to Flash"> <span id="swrite">ok</span><br><br>
 	<input type="button" title="Unlock flash" id="butUnlock" value="Unlock Flash"> <input type="button" title="Clean all flash" id="butErase" value="Erase All Flash"> <input type="button" id="butReset" title="Test restart of M�U" value="Soft Reset MCU"> <input type="button" id="butClrlog" value="Clear log"><br><hr>
 	</div>
-	<div id="slog">22:53:41: USB-COM opened.<br>22:53:44: File was selected, size: 92424 bytes<br>22:53:46: Reset DTR/RTS (100 ms)<br>22:53:46: Activate (3 sec)...<br>22:53:49: Flash Erase All (3.5 sec)...<br>22:53:53: Done.<br>22:53:53: Reset DTR/RTS (100 ms)<br>22:53:53: Activate (3 sec)...<br>22:53:56: Write 92424 bytes in to Flash...<br>22:54:33: Done (39.818 sec).<br>22:54:33: Soft Reset MCU<br>23:18:42: File was selected, size: 92392 bytes<br>23:18:44: Reset DTR/RTS (100 ms)<br>23:18:44: Activate (3 sec)...<br>23:18:47: Write 92392 bytes in to Flash...<br>23:19:21: Done (36.991 sec).<br>23:19:21: Soft Reset MCU<br>23:23:02: File was selected, size: 92424 bytes<br>23:23:03: Reset DTR/RTS (100 ms)<br>23:23:03: Activate (3 sec)...<br>23:23:06: Write 92424 bytes in to Flash...<br>23:23:40: Done (36.994 sec).<br>23:23:40: Soft Reset MCU<br>00:33:54: File was selected, size: 92460 bytes<br>00:33:55: Reset DTR/RTS (100 ms)<br>00:33:55: Activate (3 sec)...<br>00:33:58: Flash Erase All (3.5 sec)...<br>00:34:02: Done.<br>00:34:02: Reset DTR/RTS (100 ms)<br>00:34:02: Activate (3 sec)...<br>00:34:05: Write 92460 bytes in to Flash...<br>00:34:39: Done (36.881 sec).<br>00:34:39: Soft Reset MCU<br>00:55:09: File was selected, size: 92568 bytes<br>00:55:10: Reset DTR/RTS (100 ms)<br>00:55:10: Activate (3 sec)...<br>00:55:13: Write 92568 bytes in to Flash...<br>00:55:47: Done (36.868 sec).<br>00:55:47: Soft Reset MCU<br></div>
+	<div id="slog"></div>
   
 <script type="text/javascript">
 "use strict";
