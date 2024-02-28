@@ -65,8 +65,8 @@ _attribute_ram_code_ void main_loop(void)
             set_led_color(3);
             WaitUs(500);
         } else {
-            set_led_color(2);
-            WaitUs(200);
+            set_led_color(1);
+            WaitUs(50);
         }
         set_led_color(0);
     }

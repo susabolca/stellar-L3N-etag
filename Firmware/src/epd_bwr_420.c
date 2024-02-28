@@ -263,7 +263,6 @@ _attribute_ram_code_ uint8_t EPD_BWR_420_Display_BWR(unsigned char *image, unsig
 
     // Set RAM X- Address Start/End
     EPD_WriteCmd(0x44);
-
 #if 0
     if (full_or_partial == 1) {
         EPD_WriteData(0x0C);
@@ -319,7 +318,10 @@ _attribute_ram_code_ uint8_t EPD_BWR_420_Display_BWR(unsigned char *image, unsig
 
     WaitMs(5);
 
-    EPD_Lut(ssd1683_full_bwr);
+    // slow mode for clear
+    if (image || red_image) {
+        EPD_Lut(ssd1683_full_bwr);
+    } 
 
     // black color
     // Set RAM X counter 
@@ -340,7 +342,7 @@ _attribute_ram_code_ uint8_t EPD_BWR_420_Display_BWR(unsigned char *image, unsig
         }
     }
 
-    // read color
+    // red color
     // Set RAM X address
     EPD_WriteCmd(0x4E);
     EPD_WriteData(h0 & 0xff);

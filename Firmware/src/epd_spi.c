@@ -136,13 +136,6 @@ _attribute_ram_code_ void EPD_send_lut(uint8_t lut[], int len)
     }
 }
 
-_attribute_ram_code_ void EPD_send_empty_lut(uint8_t lut, int len)
-{
-    EPD_WriteCmd(lut);
-    for (int r = 0; r <= len; r++)
-        EPD_WriteData(0x00);
-}
-
 _attribute_ram_code_ void EPD_LoadImage(unsigned char *image, int size, uint8_t cmd)
 {
     int i;
@@ -152,6 +145,14 @@ _attribute_ram_code_ void EPD_LoadImage(unsigned char *image, int size, uint8_t 
         EPD_WriteData(image[i]);
     }
     WaitMs(2);
+}
+
+#if 0
+_attribute_ram_code_ void EPD_send_empty_lut(uint8_t lut, int len)
+{
+    EPD_WriteCmd(lut);
+    for (int r = 0; r <= len; r++)
+        EPD_WriteData(0x00);
 }
 
 _attribute_ram_code_ void EPD_LoadImageMirror(unsigned char *image, int size, uint8_t cmd)
@@ -164,3 +165,4 @@ _attribute_ram_code_ void EPD_LoadImageMirror(unsigned char *image, int size, ui
     }
     WaitMs(2);
 }
+#endif

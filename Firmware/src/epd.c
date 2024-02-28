@@ -470,10 +470,13 @@ void epd_all_white() {
     WaitMs(10);
 
     if (epd_model == 1) {
-        EPD_BWR_420_Display_BWR(NULL, NULL, 296, 152, 0, 0);
+        EPD_BWR_420_Display_BWR(NULL, NULL, 300, 400, 0, 0);
     } else if (epd_model == 2) {
         EPD_BWR_266_Display_BWR(NULL, NULL, 296, 152, 0, 0);
     }
+    
+    // wait first full refresh finish.
+    WaitMs(15 * 1000);
 }
 
 void epd_update(struct date_time _time, uint16_t battery_mv, int16_t temperature) {
