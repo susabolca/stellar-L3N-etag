@@ -125,8 +125,12 @@ _attribute_ram_code_ uint8_t EPD_read_temp(void)
     WaitMs(10);
 
     // read temp
-    epd_temperature = EPD_BWR_266_read_temp();
-
+    if (epd_model == 1) {
+        epd_temperature = EPD_BWR_420_read_temp();
+    } else if (epd_model == 2) {
+        epd_temperature = EPD_BWR_266_read_temp();
+    }
+ 
     // power off
     EPD_POWER_OFF();
     epd_temperature_is_read = 1;
@@ -476,7 +480,7 @@ void epd_all_white() {
     }
     
     // wait first full refresh finish.
-    WaitMs(15 * 1000);
+    WaitMs(18 * 1000);
 }
 
 void epd_update(struct date_time _time, uint16_t battery_mv, int16_t temperature) {
